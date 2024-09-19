@@ -1,0 +1,27 @@
+---
+- name: Create websites for team members
+  hosts: all
+  become: yes
+  vars:
+    team_members:
+      - pratik
+      - Anubhav
+      - Nikunj
+      - khushi
+      - Rohit
+  tasks:
+    - name: Create directories for each team member's website
+      file:
+        path: "/var/www/{{ item }}"
+        state: directory
+        owner: www-data
+        group: www-data
+        mode: '0755'
+      loop: "{{ team_members }}"
+
+    - name: Create index.html for each team member's website
+      copy:
+        dest: "/var/www/{{ item }}/index.html"
+        content: "Welcome to {{ item }}'s website!"
+      loop: "{{ team_members }}"
+

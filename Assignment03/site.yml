@@ -1,0 +1,52 @@
+---
+- name: Setup Infrastructure for Spring3HibernateApp
+  hosts: webservers
+  become: yes
+  tasks:
+    
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+
+    - name: Install MySQL
+      apt:
+        name: mysql-server
+        state: present
+
+    - name: Install JDK 11
+      apt:
+        name: openjdk-11-jdk
+        state: present
+
+    - name: Install Tomcat
+      apt:
+        name: tomcat
+        state: present
+
+    - name: Install Maven
+      apt:
+        name: maven
+        state: present
+
+    - name: Clone Spring3Hibernate Repository
+      git:
+        repo: 'https://github.com/opstree/spring3hibernate'
+        dest: /home/ubuntu/spring3hibernate
+
+    - name: Build WAR file using Maven
+      command: mvn clean package
+      args:
+        chdir: /home/ubuntu/spring3hibernate
+
+    - name: Copy WAR file to Tomcat webapps directory
+      copy:
+        src: /home/ubuntu/spring3hibernate/target/spring3hibernate.war
+        dest: /opt/tomcat/webapps/spring3hibernate.war
+
+  handlers:
+    - name: Restart Tomcat
+      service:
+        name: tomcat
+        state: restarted
+        enabled: yes
+

@@ -1,0 +1,35 @@
+---
+- name: Install and configure Nginx
+  hosts: all
+  become: yes
+  tasks:
+    - name: Install Nginx
+      apt:
+        name: nginx
+        state: present
+        update_cache: yes
+
+    - name: Ensure Nginx is running
+      service:
+        name: nginx
+        state: started
+        enabled: yes
+
+    - name: Configure Nginx log rotation
+      copy:
+        content: |
+          /var/log/nginx/*.log {
+              daily
+              rotate 7
+              size 1G
+              compress
+              missingok
+              notifempty
+              create 0640 www-data adm
+              sharedscripts
+              postrotate
+                  [ -f /var/run/nginx.pid ] && kill -USR1 `cat /var/run/nginx.pid`
+              endscript
+          }
+        dest: /etc/logrotate.d/nginx
+

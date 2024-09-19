@@ -1,0 +1,33 @@
+---
+- name: Setup website rotation
+  hosts: all
+  become: yes
+  tasks:
+    - name: Copy rotation script
+      copy:
+        src: rotate_websites.sh
+        dest: /usr/local/bin/rotate_websites.sh
+        mode: '0755'
+
+    - name: Create systemd service for rotation script
+      copy:
+        content: |
+          [Unit]
+          Description=Website rotation service
+
+          [Service]
+          ExecStart=/usr/local/bin/rotate_websites.sh
+          Restart=always
+          User=root
+
+          [Install]
+          WantedBy=multi-user.target
+        dest: /etc/systemd/system/rotate_websites.service
+        mode: '0644'
+
+    - name: Start and enable rotation service
+      systemd:
+        name: rotate_websites
+        state: started
+        enabled: yes
+
